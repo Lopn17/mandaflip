@@ -62,6 +62,9 @@ tr td:last-child,tr th:last-child{border-top-right-radius:12px;border-bottom-rig
 .progress > div{height:100%;transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0}
 /* Quiz */
 .quiz{display:flex;flex-direction:column;gap:12px}
+.quiz-settings{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:end
+}
 .q-stem{font-size:1.4rem}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:700px){.choices{grid-template-columns:1fr}}
@@ -526,7 +529,7 @@ input:checked + .toggle-slider:before {transform: translateX(16px);background-co
 <section id="quizView" class="panel hidden">
 <h2>Kuis Pilihan Ganda</h2>
 <div class="quiz">
-<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+<div class="quiz-settings">
 <div>
 <label for="modeSel" style="font-size:.9rem;color:var(--muted)">Tipe Soal</label><br>
 <select id="modeSel" class="tab">
@@ -1254,6 +1257,8 @@ function checkForDuplicates(field) {
     };
 }
 
+const quizSettings = document.querySelector('.quiz-settings');
+
 $('#startQuizBtn').addEventListener('click', async () => {
     const numChoices = parseInt(cChoicesSel.value, 10);
     if (cards.length < numChoices) {
@@ -1345,6 +1350,7 @@ $('#startQuizBtn').addEventListener('click', async () => {
     prevQBtn.classList.add('transparent');
 
     updateQuizStatsUI();
+    quizSettings.classList.add('hidden');
     showQuestionAt(0);
 });
 
@@ -1387,6 +1393,7 @@ async function endQuiz() {
     qStem.textContent = '—';
     quizFeedback.textContent = '';
     quizStatsEl.textContent = `Benar: 0 · Salah: 0 · 0%`;
+    quizSettings.classList.remove('hidden');
     renderAccountUI();
 }
 
