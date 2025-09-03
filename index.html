@@ -580,7 +580,8 @@ input:checked + .toggle-slider:before {transform: translateX(16px);background-co
 <div id="quizBox" class="panel" style="margin:0;display:none">
 <div style="display:flex;align-items:center;justify-content:space-between">
 <div id="qNumber" style="font-size:0.9rem;color:var(--muted);margin-bottom:8px"></div>
-<div id="quizStats" style="font-size:0.9rem;color:var(--muted);margin-bottom:8px">Benar: 0 · Salah: 0 · 0%</div>
+<div id="quizStats" style="font-size:0.9rem;color:var(--muted);margin-bottom:8px">Benar: 0 · Salah: 0 · 0% · 0xp</div>
+
 </div>
 <div class="q-stem" id="qStem">—</div>
     <div class="table-wrapper" style="margin-top: 10px;">
@@ -1392,7 +1393,7 @@ async function endQuiz() {
     qChoices.innerHTML = '';
     qStem.textContent = '—';
     quizFeedback.textContent = '';
-    quizStatsEl.textContent = `Benar: 0 · Salah: 0 · 0%`;
+    quizStatsEl.textContent = `Benar: 0 · Salah: 0 · 0% · 0xp`;
     quizSettings.classList.remove('hidden');
     renderAccountUI();
 }
@@ -1561,16 +1562,10 @@ function selectChoice(btn, val, correct) {
 
 function updateQuizStatsUI() {
     if (!quizSession) {
-        quizStatsEl.textContent = `Benar: 0 · Salah: 0 · 0%`;
+        quizStatsEl.textContent = `Benar: 0 · Salah: 0 · 0% · 0xp`;
         return;
     }
-    const correct = quizSession.correctCount || 0;
-    const wrong = quizSession.wrongCount || 0;
-    const totalAttempted = correct + wrong;
-    const percent = getPercent(correct, quizSession.resultsTotal);
-    quizStatsEl.textContent = `Benar: ${correct} · Salah: ${wrong} · ${percent}%`;
-    quizGrade.textContent = percent;
-    totalChoices = parseInt(cChoicesSel.value, 10);
+        totalChoices = parseInt(cChoicesSel.value, 10);
     let expMultiplier = 10;
 
     if (totalChoices >= 2 && totalChoices <= 4) {
@@ -1589,6 +1584,12 @@ function updateQuizStatsUI() {
         expMultiplier = 0;
     }
     const expGained = quizSession.correctCount * expMultiplier;
+    const correct = quizSession.correctCount || 0;
+    const wrong = quizSession.wrongCount || 0;
+    const totalAttempted = correct + wrong;
+    const percent = getPercent(correct, quizSession.resultsTotal);
+    quizStatsEl.textContent = `Benar: ${correct} · Salah: ${wrong} · ${percent}% · ${expGained}xp`;
+    quizGrade.textContent = percent;
     xpGain.textContent = expGained;
 }
 
