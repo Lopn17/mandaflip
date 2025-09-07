@@ -466,7 +466,7 @@ mark {
 </head>
 <body>
 <div class="container">
-<span class="wm">© stev_hgsn & justin G.</span>
+<span class="wm">© stev_hgsn.</span>
 <header>
 <h1>MandaFlip <span style="color:var(--accent)">Hanzi · Pinyin · Arti</span></h1>
 <nav class="nav">
@@ -757,7 +757,6 @@ mark {
 <script>
 
 document.addEventListener('keydown', function(e) {
-  // Deteksi Ctrl + /
   if (e.ctrlKey && e.key.toLowerCase() === 'r') {
     e.preventDefault(); // cegah default browser (biasanya quick find)
     const searchInput = document.getElementById('searchChoices');
@@ -1524,10 +1523,14 @@ function showQuestionAt(index) {
 
     const quizSpeakBtn = document.querySelector('.speak-btn-quiz');
     if (quizSpeakBtn) { // Pastikan tombol ada sebelum menambahkan listener
-        quizSpeakBtn.addEventListener('click', (e) => {
-            const textToSpeak = e.currentTarget.dataset.hanzi;
-            speak(textToSpeak); // Gunakan fungsi speak() yang sudah ada
-        });
+        if (quizSession.mode === 'sound-arti' || quizSession.mode === 'arti-sound'){
+            quizSpeakBtn.className = 'hidden';
+        } else {
+            quizSpeakBtn.addEventListener('click', (e) => {
+                const textToSpeak = e.currentTarget.dataset.hanzi;
+                speak(textToSpeak); // Gunakan fungsi speak() yang sudah ada
+            });
+        }
     }
 
     const choicesToDisplay = item.choices || buildAndStoreChoices(item, correct, field);
