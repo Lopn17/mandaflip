@@ -1507,8 +1507,8 @@ function showQuestionAt(index) {
 
         // Buat string HTML untuk tombol suara
         // Kita akan memutar suara dari Hanzi atau prompt, tergantung mode kuis
-        const textToSpeak = (quizSession.mode.includes('hanzi')) ? item.hanzi : prompt;
-        const speakBtnHtml = `<button class="tab speak-btn-quiz" style="margin-left: 8px;" data-hanzi="${textToSpeak}">🔊</button>`;
+        const textToSpeak = item.hanzi;
+        const speakBtnHtml = `<button class="tab speak-btn-quiz" style="margin-left: 8px;" data-hanzi="${item.hanzi}">🔊</button>`;
 
         if (item.chosen === correct) {
             quizFeedback.innerHTML = "Benar! " + `<br>` + feedbackText + speakBtnHtml;
@@ -1523,14 +1523,10 @@ function showQuestionAt(index) {
 
     const quizSpeakBtn = document.querySelector('.speak-btn-quiz');
     if (quizSpeakBtn) { // Pastikan tombol ada sebelum menambahkan listener
-        if (quizSession.mode === 'sound-arti' || quizSession.mode === 'arti-sound'){
-            quizSpeakBtn.className = 'hidden';
-        } else {
-            quizSpeakBtn.addEventListener('click', (e) => {
-                const textToSpeak = e.currentTarget.dataset.hanzi;
-                speak(textToSpeak); // Gunakan fungsi speak() yang sudah ada
-            });
-        }
+        quizSpeakBtn.addEventListener('click', (e) => {
+            const textToSpeak = e.currentTarget.dataset.hanzi;
+            speak(textToSpeak); // Gunakan fungsi speak() yang sudah ada
+        });
     }
 
     const choicesToDisplay = item.choices || buildAndStoreChoices(item, correct, field);
