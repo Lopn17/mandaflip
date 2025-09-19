@@ -662,7 +662,7 @@ mark {
 <th>Hanzi</th>
 <th>Pinyin</th>
 <th>Arti</th>
-<th style="width:160px">Aksi</th>
+<th style="width:240px">Aksi</th>
 </tr>
 </thead>
 <tbody id="list"></tbody>
@@ -1884,10 +1884,14 @@ function renderList() {
         <button class="tab" data-edit="${c.id}">Edit</button>
         <button class="tab" data-del="${c.id}">Hapus</button>
         <button class="tab speakbtn" data-hanzi="${escapeHtml(c.hanzi)}">🔊</button>
+        <button class="tab btn-notyet" data-id="${c.id}">Not Yet</button>
+        <button class="tab btn-again" data-id="${c.id}">Again</button>
+        <button class="tab btn-good" data-id="${c.id}">Good</button>
         </td>`;
                 tbody.appendChild(tr);
             });
 
+            attachListActionEvents();
             document.querySelectorAll('.speakbtn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const hanziToSpeak = e.currentTarget.dataset.hanzi;
@@ -1896,6 +1900,52 @@ function renderList() {
             });
 
         }
+
+function attachListActionEvents() {
+    $$('.btn-notyet').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const c = cards.find(cc => cc.id == id);
+            if (!c) return;
+            c.status = undefined;
+            saveCards();
+            buildStudyOrder();
+            refreshStudyMeta();
+            customAlert(`Kartu "${c.hanzi} / ${c.pinyin} / ${c.arti}" direset ke "Belum Dicoba"`);
+            renderList(); // refresh tampilan
+        });
+    });
+
+    $$('.btn-again').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const c = cards.find(cc => cc.id == id);
+            if (!c) return;
+            c.stats.again++;
+            c.status = 'again';
+            today.again++;
+            saveCards();
+            updateAccountOnStudy('again');
+            customAlert(`Kartu "${c.hanzi} / ${c.pinyin} / ${c.arti}" ditandai "Again"`);
+            renderList();
+        });
+    });
+
+    $$('.btn-good').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const c = cards.find(cc => cc.id == id);
+            if (!c) return;
+            c.stats.good++;
+            c.status = 'good';
+            today.good++;
+            saveCards();
+            updateAccountOnStudy('good');
+            customAlert(`Kartu "${c.hanzi} / ${c.pinyin} / ${c.arti}" ditandai "Good"`);
+            renderList();
+        });
+    });
+}
 
 function escapeHtml(s) {
     return s.replace(/[&<>]/g, ch => ({
@@ -2279,7 +2329,7 @@ $('#notYetBtn').addEventListener('click', () => {
     refreshStudyMeta();
 
     // Feedback kecil (opsional)
-    customAlert('Status kartu direset jadi "Belum Dicoba".');
+    customAlert(`Status kartu ${c.hanzi} / ${c.pinyin} / ${c.arti} direset jadi "Belum Dicoba".`);
 });
 
 
