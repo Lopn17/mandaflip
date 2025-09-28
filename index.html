@@ -577,7 +577,7 @@ mark {
     </div>
 </div>
 </div><br>
-<div style="color:var(--muted);font-size:.9rem">Shortcut: Space=Flip, ←/→=Navigasi, G=Good, A=Again, Not Yet = Ctrl+B, S = Sound</div>
+<div style="color:var(--muted);font-size:.9rem">Shortcut: Space=Flip, ←/→=Navigasi, G=Good, A=Again, Not Yet=B, S = Sound</div>
 </div>
 <div class="progress" title="Progres sesi ini">
 <div id="progressBar"></div>
@@ -598,6 +598,9 @@ mark {
         <option value="again">Perlu Dipelajari (Again)</option>
         <option value="default">Belum Dicoba</option>
         <option value="good">Sudah Dikuasai (Good)</option>
+        <option value="good-again">Good & Again</option>
+        <option value="again-default">Again & Belum Dicoba</option>
+        <option value="default-good">Belum Dicoba & Good</option>
     </select>
 </div>
 <div>
@@ -618,7 +621,7 @@ mark {
 <div>
 <label for="numSel" style="font-size:.9rem;color:var(--muted)">Jumlah Soal</label><br>
 <select id="numSel" class="tab">
-<option>5</option><option>10</option><option>15</option><option>20</option><option>25</option><option>50</option><option>100</option><option>150</option><option>300</option>
+<option>5</option><option>10</option><option>15</option><option>20</option><option>25</option><option>50</option><option>100</option><option>150</option><option>300</option><option>400</option><option>500</option>
 <option value="custom">Kustom...</option>
 </select>
 </div>
@@ -639,13 +642,14 @@ mark {
 <option>30</option>
 <option>40</option>
 <option>50</option>
-<option>80</option>
 <option>100</option>
 <option>150</option>
+<option>300</option>
+<option class="customByDEV">537</option>
 </select>
 </div>
 <button id="startQuizBtn" class="tab">Mulai Kuis</button>
-<div style="margin-left:auto;color:var(--muted)"><span style="margin-right: 40px;"> Shortcut: ←/→ Navigasi Soal | Ctrl + F = Search</span> Skor: <span id="quizScore">0</span> / <span id="quizTotal">0</span> · <span id="quizGrade">0</span>% · <span id="xpGain">0</span> xp</div>
+<div style="margin-left:auto;color:var(--muted)"><span style="margin-right: 40px;"> Shortcut: ←/→ Navigasi Soal | Ctrl+F = Search | A = Again | S = Sound | G = Good |</span> Skor: <span id="quizScore">0</span> / <span id="quizTotal">0</span> · <span id="quizGrade">0</span>% · <span id="xpGain">0</span> xp</div>
 </div>
 <div id="quizBox" class="panel" style="margin:0;display:none">
 <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1400,7 +1404,7 @@ $('#startQuizBtn').addEventListener('click', async () => {
     
     const mode = $('#modeSel').value;
 
-        // === FILTER SESUAI ISI SOAL ===
+// === FILTER SESUAI ISI SOAL ===
     let filteredCards = [];
     switch (contentSel.value) {
         case 'again':
@@ -1412,9 +1416,19 @@ $('#startQuizBtn').addEventListener('click', async () => {
         case 'good':
             filteredCards = cards.filter(c => c.status === 'good');
             break;
+        case 'good-again':
+            filteredCards = cards.filter(c => c.status === 'good' || c.status === 'again');
+            break;
+        case 'again-default':
+            filteredCards = cards.filter(c => c.status === 'again' || !c.status || c.status === 'default');
+            break;
+        case 'default-good':
+            filteredCards = cards.filter(c => !c.status || c.status === 'default' || c.status === 'good');
+            break;
         default: // 'all'
             filteredCards = [...cards];
     }
+
 
     if (filteredCards.length === 0) {
         await customAlert('Tidak ada kartu yang sesuai dengan pilihan Isi Soal. Tambahkan atau ubah status kartu di menu Belajar.');
@@ -1615,7 +1629,7 @@ function showQuestionAt(index) {
         const feedbackText = `Jawaban: <span style="font-weight:600;color:var(--text)">${item.hanzi} / ${item.pinyin} / ${item.arti}</span>`;
 
         // Tombol suara
-        const speakBtnHtml = `<button class="tab speak-btn-quiz" style="margin-left: 8px;" data-hanzi="${item.hanzi}">🔊</button>`;
+        const speakBtnHtml = `<button class="tab speak-btn-quiz speakbtnhtmls" style="margin-left: 8px;" data-hanzi="${item.hanzi}">🔊</button>`;
 
         // Tombol Again & Good
         const againBtnHtml = `<button class="tab again-btn-quiz" style="margin-left: 8px;" data-id="${item.id}">Again</button>`;
@@ -1773,6 +1787,8 @@ function updateQuizStatsUI() {
         expMultiplier = 25;
     } else if (totalChoices >= 75 && totalChoices <= 150) {
         expMultiplier = 30;
+    } else if (totalChoices >= 151 && totalChoices <= 1000) {
+        expMultiplier = 32;
     } else {
         expMultiplier = 0;
     }
@@ -1954,6 +1970,8 @@ function updateAccountOnQuizCompletion(quizResults, totalChoices) {
         xpMultiplier = 25;
     } else if (totalChoices >= 75 && totalChoices <= 150) {
         xpMultiplier = 30;
+    } else if (totalChoices >= 151 && totalChoices <= 1000) {
+        xpMultiplier = 32;
     } else {
         xpMultiplier = 0;
     }
@@ -2450,10 +2468,19 @@ $('#notYetBtn').addEventListener('click', () => {
     // Reset status jadi belum dicoba
     c.status = undefined;
     saveCards(); 
-    buildStudyOrder();
-    refreshStudyMeta();
-
-    // Feedback kecil (opsional)
+    if (currentFilter === 'all') {
+        next();
+    } else {
+        const oldId = c.id;
+        buildStudyOrder();
+        if (studyOrder.length > 0) {
+            const newIndex = studyOrder.indexOf(oldId);
+            if (newIndex !== -1) {
+                studyIndex = newIndex;
+            }
+        }
+        next();
+    }
     showNotification(`Status kartu ${c.hanzi} / ${c.pinyin} / ${c.arti} direset jadi "Belum Dicoba".`, "warning");
 });
 
@@ -2553,6 +2580,10 @@ window.addEventListener('keydown', (e) => {
     if (!views.quizView.classList.contains('hidden')) {
         if (e.key === 'ArrowRight') $('#nextQBtn').click();
         if (e.key === 'ArrowLeft') $('#prevQBtn').click();
+        if (e.key.toLowerCase() === 'g') $('.good-btn-quiz').click();
+        if (e.key.toLowerCase() === 'a') $('.again-btn-quiz').click();
+        if (e.key.toLowerCase() === 'b') $('.notyet-btn-quiz').click();
+        if (e.key.toLowerCase() === 's') $('.speakbtnhtmls').click();
     }
 });
 
