@@ -613,9 +613,11 @@ mark {
 <option value="pinyin-arti">Pinyin → Arti</option>
 <option value="pinyin-hanzi">Pinyin → Hanzi</option>
 <option value="sound-hanzi">Sound → Hanzi</option>
-<option value="hanzi-sound">Hanzi → Sound</option>
 <option value="sound-arti">Sound → Arti</option>
+<option value="sound-pinyin">Sound → Pinyin</option>
+<option value="hanzi-sound">Hanzi → Sound</option>
 <option value="arti-sound">Arti → Sound</option>
+<option value="pinyin-sound">Pinyin → Sound</option>
 </select>
 </div>
 <div>
@@ -645,7 +647,6 @@ mark {
 <option>100</option>
 <option>150</option>
 <option>300</option>
-<option class="customByDEV">537</option>
 </select>
 </div>
 <button id="startQuizBtn" class="tab">Mulai Kuis</button>
@@ -661,6 +662,9 @@ mark {
       <input type="text" id="searchChoices" placeholder="Cari jawaban...">
     </div>
   <div class="q-stem" id="qStem">—</div>
+    <div style="margin-top: 10px;">
+        <input type="text" id="quizSearch" placeholder="Cari jawaban..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;">
+    </div>
   <div class="table-wrapper" style="margin-top: 10px;">
     <div class="choices" id="qChoices"></div>
   </div>
@@ -1506,6 +1510,21 @@ $('#startQuizBtn').addEventListener('click', async () => {
     }
     prevQBtn.classList.add('transparent');
 
+        // Add real-time search listener for quiz choices
+    const quizSearch = $('#quizSearch');
+    quizSearch.addEventListener('input', () => {
+        const query = quizSearch.value.toLowerCase().trim();
+        const choices = $$('.choice');
+        choices.forEach(choice => {
+            const text = choice.textContent.toLowerCase();
+            if (text.includes(query)) {
+                choice.style.display = '';
+            } else {
+                choice.style.display = 'none';
+            }
+        });
+    });
+
     updateQuizStatsUI();
     quizSettings.classList.add('hidden');
     showQuestionAt(0);
@@ -1624,6 +1643,7 @@ function showQuestionAt(index) {
     quizTotal.textContent = quizSession.pool.length;
     qChoices.innerHTML = '';
     quizFeedback.innerHTML = '';
+    $('#quizSearch').value = ''; // Reset search bar for new question
 
     if (item.answered) {
         const feedbackText = `Jawaban: <span style="font-weight:600;color:var(--text)">${item.hanzi} / ${item.pinyin} / ${item.arti}</span>`;
@@ -1710,7 +1730,7 @@ function showQuestionAt(index) {
         btn.className = 'choice';
 
         // Tentukan apakah tombol harus memutar suara
-        if (quizSession.mode === 'hanzi-sound' || quizSession.mode === 'arti-sound') {
+        if (quizSession.mode === 'hanzi-sound' || quizSession.mode === 'arti-sound' || quizSession.mode === 'pinyin-sound') {
 
             qSpeakBtn.className = 'hidden';
             btn.textContent = '🔊';
@@ -1853,7 +1873,7 @@ function buildPrompt(card, mode) {
                 correct: card.hanzi,
                 field: 'hanzi'
             };
-                case 'sound-hanzi':
+        case 'sound-hanzi':
             return {
                 prompt: 'Dengarkan suara ini, lalu pilih Hanzi yang benar.',
                 correct: card.hanzi,
@@ -1880,6 +1900,22 @@ function buildPrompt(card, mode) {
         case 'arti-sound':
             return {
                 prompt: `[Double click choices] Pilih suara yang benar untuk arti ini: ${card.arti}`,
+                correct: card.hanzi, // Jawaban benar adalah Hanzi yang sesuai dengan suara
+                field: 'hanzi',
+                audio: true,
+                textToSpeak: card.hanzi
+            };
+        case 'sound-pinyin':
+            return {
+                prompt: 'Dengarkan suara ini, lalu pilih Pinyin yang benar.',
+                correct: card.pinyin,
+                field: 'pinyin',
+                audio: true,
+                textToSpeak: card.hanzi
+            };
+        case 'pinyin-sound':
+            return {
+                prompt: `[Double click choices] Pilih suara yang benar untuk pinyin ini: ${card.pinyin}`,
                 correct: card.hanzi, // Jawaban benar adalah Hanzi yang sesuai dengan suara
                 field: 'hanzi',
                 audio: true,
